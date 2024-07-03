@@ -48,7 +48,7 @@
         <div class="form-row mb-3">
             <div class="col-md-6">
                 <label for="pincode">Pincode</label>
-                <input type="text" name="pincode" class="form-control" required>
+                <input type="text" name="pincode" id="pincode" class="form-control" required>
             </div>
             <div class="col-md-6">
                 <label for="marital_status">Marital Status</label>
@@ -94,15 +94,15 @@
                 </div>
                 <div class="form-row mb-3">
                     <div class="col-md-6">
-                        <label for="family_members[0][marital_status]">Marital Status</label>
-                        <select name="family_members[0][marital_status]" class="form-control" required>
+                        <label for="family_members[0][marital_status]" id="family_members_0_marital_status">Marital Status</label>
+                        <select name="family_members[0][marital_status]" class="form-control family-member-marital-status" data-index="0" required>
                             <option value="Married">Married</option>
                             <option value="Unmarried">Unmarried</option>
                         </select>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-6 family-member-wedding-date-group" id="family_members_0_wedding_date_group">
                         <label for="family_members[0][wedding_date]">Wedding Date</label>
-                        <input type="date" name="family_members[0][wedding_date]" class="form-control">
+                        <input type="date" name="family_members[0][wedding_date]" class="form-control family-member-wedding-date">
                     </div>
                 </div>
                 <div class="form-group mb-3">
@@ -123,6 +123,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function () {
         $('#state').change(function () {
@@ -181,14 +182,14 @@
                     <div class="form-row mb-3">
                         <div class="col-md-6">
                             <label for="family_members[${index}][marital_status]">Marital Status</label>
-                            <select name="family_members[${index}][marital_status]" class="form-control" required>
+                            <select name="family_members[${index}][marital_status]" class="form-control family-member-marital-status" data-index="${index}" required>
                                 <option value="Married">Married</option>
                                 <option value="Unmarried">Unmarried</option>
                             </select>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-6 family-member-wedding-date-group" id="family_members_${index}_wedding_date_group">
                             <label for="family_members[${index}][wedding_date]">Wedding Date</label>
-                            <input type="date" name="family_members[${index}][wedding_date]" class="form-control">
+                            <input type="date" name="family_members[${index}][wedding_date]" class="form-control family-member-wedding-date">
                         </div>
                     </div>
                     <div class="form-group mb-3">
@@ -201,11 +202,32 @@
                         <img src="#" id="photoPreview${index}" style="display: none; max-width: 20%; height: 20%; margin-top: 10px;">
                     </div>
                     <hr>
-                </div>`;
+                </div>
+            `;
+
             $('#family-members-container').append(familyMemberHtml);
         });
 
-        $('#birthdate').change(function () {
+        $(document).on('change', '.family-member-marital-status', function () {
+            var index = $(this).data('index');
+            if ($(this).val() === 'Married') {
+                $(`#family_members_${index}_wedding_date_group`).show();
+            } else {
+                $(`#family_members_${index}_wedding_date_group`).hide();
+            }
+        }).trigger('change');
+    });
+
+    function previewImage(input, previewElement) {
+        var file = input.files[0];
+        var reader = new FileReader();
+        reader.onload = function (e) {
+            $(previewElement).attr('src', e.target.result).show();
+        };
+        reader.readAsDataURL(file);
+    }
+
+    $('#birthdate').change(function () {
             var selectedDate = new Date($(this).val());
             var today = new Date();
             var age = today.getFullYear() - selectedDate.getFullYear();
@@ -242,32 +264,8 @@
             }
         });
 
-        $('form').submit(function (event) {
-            event.preventDefault();
-            Swal.fire({
-                title: 'Are you sure?',
-                icon: 'success',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, submit it!'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    this.submit();
-                }
-            });
-        });
-    });
 
-    function previewImage(input, imgSelector) {
-        var reader = new FileReader();
-
-        reader.onload = function (e) {
-            $(imgSelector).attr('src', e.target.result);
-            $(imgSelector).show();
-        };
-
-        reader.readAsDataURL(input.files[0]);
-    }
 </script>
+
+
 @endsection

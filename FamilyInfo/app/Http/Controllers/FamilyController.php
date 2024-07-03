@@ -34,7 +34,7 @@ class FamilyController extends Controller
             'address' => 'required|string',
             'state_id' => 'required|exists:states,id',
             'city_id' => 'required|exists:cities,id',
-            'pincode' => 'required|string|max:10',
+            'pincode' => 'required|string|digits_between:6,10',
             'marital_status' => 'required|string|in:Married,Unmarried',
             'wedding_date' => 'nullable|required_if:marital_status,Married|date',
             'hobbies' => 'nullable|array',
@@ -73,21 +73,29 @@ class FamilyController extends Controller
     }
 
 
-    private function handleFileUpload(Request $request, $fieldName, $directory)
+    private function handleFileUpload(Request $request, $fieldName, $folderName)
     {
         if ($request->hasFile($fieldName)) {
-            Log::info('Handling file upload', ['fieldName' => $fieldName]);
-            return $request->file($fieldName)->store($directory, 'public');
+            return $request->file($fieldName)->store($folderName, 'public');
         }
         return null;
     }
 
-    private function handleNestedFileUpload(Request $request, $nestedFieldName, $directory)
+    private function handleNestedFileUpload(Request $request, $fieldPath, $folderName)
     {
-        $file = $request->file($nestedFieldName);
-        if ($file) {
-            Log::info('Handling nested file upload', ['fieldName' => $nestedFieldName]);
-            return $file->store($directory, 'public');
+        $fieldParts = explode('.', $fieldPath);
+        $file = $request;
+
+        foreach ($fieldParts as $part) {
+            if (isset($file[$part])) {
+                $file = $file[$part];
+            } else {
+                return null;
+            }
+        }
+
+        if ($file instanceof \Illuminate\Http\UploadedFile) {
+            return $file->store($folderName, 'public');
         }
         return null;
     }
